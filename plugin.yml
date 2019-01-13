@@ -1,0 +1,20 @@
+name: TNTTAG
+main: soradore\tnttag\main
+version: 1.0.0
+api: [4.0.0, 3.5.2]
+load: POSTWORLD
+author: soradore
+description: 
+commands:
+  setjoin:
+    description: 参加用ブロック設定コマンド
+    permission: test 
+  setpos:
+    description: スポーン地点設定コマンド 地点に立って /setpos
+    permission: test
+
+permissions:
+  setjoin:
+    default: op
+  setblock:
+    default: op
