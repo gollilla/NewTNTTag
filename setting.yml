@@ -1,0 +1,12 @@
+---
+Block_For_Join:
+  x: 295
+  "y": 5
+  z: 250
+  world: world
+GAME_SPAWN:
+  x: 307.233500
+  "y": 4.000000
+  z: 261.408400
+  world: world
+...
