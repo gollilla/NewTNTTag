@@ -18,7 +18,7 @@ class GameTask extends Task {
 	public function onRun(int $tick){
 		$this->second = $this->second - 1;
 		$players = $this->plugin->playerManager->getAllPlayers();
-		$pad = str_repeat("   ",20);
+		$pad = str_repeat("   ",25);
 		foreach($players as $player){
 		    $player->sendPopup($pad . "§bラウンド    §6" . $this->plugin->getRound() . "\n" .
 		    	             $pad . "§a生存者    §6" . $this->plugin->getAliveCount() . "\n" .

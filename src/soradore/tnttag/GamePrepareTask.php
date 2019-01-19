@@ -18,7 +18,7 @@ class GamePrepareTask extends Task {
 	public function onRun(int $tick){
 		$this->second = $this->second - 1;
 		$players = $this->plugin->playerManager->getAllPlayers();
-		$pad = str_repeat("   ",20);
+		$pad = str_repeat("   ",25);
 		foreach($players as $player){
 		    $player->sendPopup($pad . "§b次のラウンドまで... §6" . $this->second . "s\n \n \n \n");
 		}

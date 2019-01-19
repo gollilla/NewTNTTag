@@ -13,8 +13,9 @@ use pocketmine\Server;
 use pocketmine\item\Item;
 use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\nbt\tag\IntTag;
-use pocketmine\level\particle\ExplodeParticle;
+use pocketmine\level\particle\HugeExplodeSeedParticle;
 use pocketmine\math\Vector3;
+use pocketmine\network\mcpe\protocol\LevelSoundEventPacket;
 
 class PlayerManager {
 
@@ -29,7 +30,7 @@ class PlayerManager {
 	public function addPlayer($player){
         $this->players[] = $player;
         $this->alive[] = $player;
-        $player->sendMessage("§b参加しました " . $this->getPlayerCount() . "人");
+        $this->sendMessage("§b参加しました " . $this->getPlayerCount() . "人");
 	}
 
 	public function isPlayer($player){
@@ -64,6 +65,9 @@ class PlayerManager {
             $this->skinManager->setTnt($player);
             $player->setNameTag("§c[Bomber] :" . $name);
             $player->sendTip("§cYou are IT\n\n\n");
+            $inventory = $player->getInventory();
+            $item = Item::get(46,0,1);
+            $inventory->setItemInHand($item);
         }
     }
 
@@ -80,9 +84,14 @@ class PlayerManager {
         foreach ($bombers as $bomber) {
             $level = $bomber->getLevel();
             $pos = new Vector3($bomber->x, $bomber->y, $bomber->z);
-            $particle = new ExplodeParticle();
+            $particle = new HugeExplodeSeedParticle;
             $level->addParticle($pos,$particle);
+            $level->broadcastLevelSoundEvent($pos, LevelSoundEventPacket::SOUND_EXPLODE);
             $this->removeAlive($bomber);
+            $bomber->teleport($level->getSafeSpawn());
+            $bomber->setNameTag($bomber->getName());
+            $this->skinManager->setOrigin($bomber);
+            $bomber->getInventory()->clearAll();
         }
         $this->bomber = [];
     }
@@ -112,10 +121,18 @@ class PlayerManager {
         array_values($this->bomber);
         $player->setNameTag($player->getName());
         $this->skinManager->setOrigin($player);
+        $player->getInventory()->clearAll();
     }
 
 	public function getAllPlayers(){
 		return $this->players;
 	}
+
+
+    public function sendMessage($mes){
+        foreach($this->players as $player){
+            $player->sendMessage($mes);
+        }
+    }
 
 }

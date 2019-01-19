@@ -10,6 +10,11 @@ use pocketmine\item\Item;
 use pocketmine\item\Fireworks;
 use pocketmine\event\player\PlayerMoveEvent;
 use pocketmine\event\player\PlayerInteractEvent;
+use pocketmine\event\player\PlayerQuitEvent;
+use pocketmine\event\player\PlayerDropItemEvent;
+use pocketmine\event\player\PlayerJoinEvent;
+use pocketmine\event\player\PlayerExhaustEvent;
+use pocketmine\event\block\BlockPlaceEvent;
 use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\math\Facing;
@@ -38,9 +43,13 @@ class main extends PluginBase implements Listener{
     public function onEnable(){
         $this->getServer()->getPluginManager()->registerEvents($this, $this);
         $this->dataManager = new DataManager($this);
-        $this->playerManager = new PlayerManager($this->dataManager);
         $this->taskManager = new TaskManager($this->getScheduler());
-       
+        $this->iniGame();
+    }
+
+
+    public function iniGame(){
+    	$this->playerManager = new PlayerManager($this->dataManager);
     }
 
 
@@ -53,16 +62,20 @@ class main extends PluginBase implements Listener{
     			$this->dataManager->setJoinBlock($block);
     			$player->sendMessage("§b参加用ブロックを設定しました");
     			unset($this->task[$name]);
+    			return false;
     		}
     	}
-    	if($this->game == self::GAME_STATUS_NOW){
-    		$player->sendMessage("§a> §b現在ゲーム中です。しばらくお待ちください");
-    		return false;
-    	}
-    	if($this->isJoinBlock($block) && !$this->isPlayer($player)){ //参加用ブロックタッチかつ、現在ゲームに参加していなかったら
-    		$this->playerManager->addPlayer($player);
-    		$this->checkPlayers();//参加人数
-    	}
+    	
+    	if($this->isJoinBlock($block)){
+    		if($this->game == self::GAME_STATUS_NOW){
+    		        $player->sendMessage("§a> §b現在ゲーム中です。しばらくお待ちください");
+    		        return false;
+            }
+    	    if(!$this->isPlayer($player)){ //参加用ブロックタッチかつ、現在ゲームに参加していなかったら
+    		    $this->playerManager->addPlayer($player);
+    		    $this->checkPlayers();//参加人数
+    	    } 
+       	}
     }
 
 
@@ -167,11 +180,39 @@ class main extends PluginBase implements Listener{
     		    }
     		}
     		$ev->setBaseDamage(0);
+    		return true;
+    	}
+    	if($this->game == self::GAME_STATUS_FIN){
+    		$ev->setCancelled();
     	}
     	
     }
 
 
+    public function onQuit(PlayerQuitEvent $ev){
+    	$player = $ev->getPlayer();
+    	$this->playerManager->removePlayer($player);
+    }
+
+
+    public function onPlace(BlockPlaceEvent $ev){
+    	$ev->setCancelled();
+    }
+
+
+    public function onDrop(PlayerDropItemEvent $ev){
+    	$ev->setCancelled();
+    }
+
+
+    public function onJoin(PlayerJoinEvent $ev){
+    	$player = $ev->getPlayer();
+    	$player->getInventory()->clearAll();
+    }
+
+    public function onExhaust(PlayerExhaustEvent $ev){
+    	$ev->setCancelled();
+    }
 
 
     public function start(){
@@ -213,11 +254,16 @@ class main extends PluginBase implements Listener{
     	$winners = $this->playerManager->getAllAlives();
     	foreach ($winners as $winner) {
     		if($winner instanceof Player){
-    	        $winner->sendMessage("§a勝者 : " . $winner->getName());
+    	        $this->playerManager->sendMessage("§a勝者 : " . $winner->getName());
+    	        $winner->setNameTag($winner->getName());
+    	        $winner->teleport($winner->getLevel()->getSafeSpawn());
+    	        $this->playerManager->skinManager->setOrigin($winner);
     	        $this->game = self::GAME_STATUS_FIN;
-    	    }else{
+    	        $this->iniGame();
+    	        break;
+    	    }/*else{
     		    var_dump($winner);
-    	    }
+    	    }*/
     	}
     	
     }
