@@ -7,7 +7,7 @@ use pocketmine\Server;
 
 class GameStartTask extends Task {
 
-    const FINISH = 20;
+    const FINISH = 10;
 
     public function __construct($plugin){
     	$this->second = self::FINISH;

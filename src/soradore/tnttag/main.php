@@ -156,8 +156,12 @@ class main extends PluginBase implements Listener{
     	if(2 < $aliveCount){
     		$num = floor($aliveCount*0.4);
     		$keys = array_rand($alives, $num);
-    		foreach ($keys as $key) {
-    			$this->playerManager->setBomber($alives[$key]);
+    		if(is_array($keys)){
+    			foreach ($keys as $key) {
+    			    $this->playerManager->setBomber($alives[$key]);
+    		    }
+    		}else{
+    			$this->playerManager->setBomber($alives[$keys]);
     		}
     	}elseif($aliveCount==2){
     	    $key = array_rand($alives, 1);
@@ -182,7 +186,7 @@ class main extends PluginBase implements Listener{
     		$ev->setBaseDamage(0);
     		return true;
     	}
-    	if($this->game == self::GAME_STATUS_FIN){
+    	if($this->game == self::GAME_STATUS_FIN || $this->game == self::GAME_STATUS_PRE){
     		$ev->setCancelled();
     	}
     	
@@ -208,6 +212,7 @@ class main extends PluginBase implements Listener{
     public function onJoin(PlayerJoinEvent $ev){
     	$player = $ev->getPlayer();
     	$player->getInventory()->clearAll();
+    	$player->setFood($player->getMaxFood());
     }
 
     public function onExhaust(PlayerExhaustEvent $ev){
